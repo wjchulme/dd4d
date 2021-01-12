@@ -1,0 +1,13 @@
+
+#' Get all functions that are used in a formula  `expr`.
+#'
+#' @param expr
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+all.funs = function(expr){
+  all.names(expr, unique=TRUE)[!(all.names(expr, unique=TRUE) %in% all.vars(expr))]
+}
