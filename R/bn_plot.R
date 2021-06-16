@@ -1,7 +1,7 @@
 
 #' Plot bn_df object
 #'
-#' @param bn_df
+#' @param bn_df initialised bn_df object, with simulation instructions. Created with `bn_create`
 #'
 #' @return
 #' @export

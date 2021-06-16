@@ -7,7 +7,7 @@
 \method{all}{funs}(expr)
 }
 \arguments{
-\item{expr}{}
+\item{expr}{a formula object}
 }
 \value{
 

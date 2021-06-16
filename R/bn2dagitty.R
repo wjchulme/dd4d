@@ -1,7 +1,7 @@
 
 #' Converts a bn_df object to a dagitty object
 #'
-#' @param bn_df
+#' @param bn_df initialised bn_df object, with simulation instructions. Created with `bn_create`
 #'
 #' @return dagitty object
 #' @export

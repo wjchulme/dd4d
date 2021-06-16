@@ -13,7 +13,7 @@
 
 #'
 #' @param list of node objects, created by `node`.
-#' @param known_variables
+#' @param known_variables character vector of variables that will be provided by an external dataset
 #'
 #' @return data.frame
 #' @export

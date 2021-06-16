@@ -1,7 +1,7 @@
 
 #' Get all functions that are used in a formula  `expr`.
 #'
-#' @param expr
+#' @param expr a formula object
 #'
 #' @return
 #' @export

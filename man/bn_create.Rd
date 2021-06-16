@@ -9,7 +9,7 @@ bn_create(list, known_variables = NULL)
 \arguments{
 \item{list}{of node objects, created by \code{node}.}
 
-\item{known_variables}{}
+\item{known_variables}{character vector of variables that will be provided by an external dataset}
 }
 \value{
 data.frame
