@@ -38,7 +38,7 @@ bn_create <- function(list, known_variables=NULL){
       if(is.null(.)){
         character()
       } else
-      if(is.na(.)){
+      if(length(.)==1 & all(is.na(.))){
         character()
       } else
         .
