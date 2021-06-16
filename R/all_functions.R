@@ -8,6 +8,6 @@
 #'
 #' @examples
 #'
-all.funs = function(expr){
+all_funs = function(expr){
   all.names(expr, unique=TRUE)[!(all.names(expr, unique=TRUE) %in% all.vars(expr))]
 }
