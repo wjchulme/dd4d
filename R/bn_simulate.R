@@ -32,7 +32,7 @@ bn_simulate <- function(bn_df, data=NULL, pop_size, keep_all=FALSE){
   bn_ordered <- dagitty %>%
     dagitty::topologicalOrdering() %>%
     tibble::enframe(name="variable", value='topological_order') %>%
-    purrr::unnest(topological_order) %>%
+    tidyr::unnest(topological_order) %>%
     dplyr::left_join(bn_df1, ., by='variable') %>%
     dplyr::arrange(topological_order)
 
