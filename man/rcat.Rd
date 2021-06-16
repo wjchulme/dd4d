@@ -2,9 +2,12 @@
 % Please edit documentation in R/rcat.R
 \name{rcat}
 \alias{rcat}
-\title{Random categorical variable}
+\alias{rfactor}
+\title{Random categorical or factor variables}
 \usage{
 rcat(n, levels, p)
+
+rfactor(n, levels, p)
 }
 \arguments{
 \item{n}{number of samples}
@@ -14,10 +17,10 @@ rcat(n, levels, p)
 \item{p}{vector of probabilities}
 }
 \value{
-
+a \code{character} or \code{factor} vector
 }
 \description{
-Random categorical variable
+Random categorical or factor variables
 }
 \examples{
 #' rcat(n=10, levels=c("a","b"), p=c(0.2,0.8))
