@@ -38,12 +38,13 @@ bn_create <- function(list, known_variables=NULL){
   }
 
   df <- dplyr::mutate(df,
-               dependencies = purrr::map(variable_formula, ~all.vars(.)),
-               missing_formula = purrr::map(missing_rate, ~{
-                 rhs <- deparse1(rlang::f_rhs(.))
-                 fun <- stats::as.formula(paste0("~rbernoulli(n=1, p=", rhs, ")"))
-                 fun
-               }),
+    dependencies = purrr::map(variable_formula, ~all.vars(.)),
+    missing_formula = purrr::map(missing_rate, ~{
+      rhs <- deparse1(rlang::f_rhs(.))
+      fun <- stats::as.formula(paste0("~rbernoulli(n=1, p=", rhs, ")"))
+      fun
+    }),
+    known=FALSE
   )
 
   if(!is.null(known_variables)){

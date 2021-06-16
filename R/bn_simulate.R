@@ -2,7 +2,7 @@
 #' Simulate data from bn_df object
 #'
 #' @param bn_df initialised bn_df object, with simulation instructions. Created with `bn_create`
-#' @param data data.frame. Optional data.frame containing upstream variables used for simulation.
+#' @param known_df data.frame. Optional data.frame containing upstream variables used for simulation.
 #' @param pop_size integer. The size of the dataset to be created.
 #' @param keep_all logical. Keep all simulated variables or only keep those specified by `keep`
 #'
@@ -10,7 +10,7 @@
 #' @export
 #'
 #' @examples
-bn_simulate <- function(bn_df, data=NULL, pop_size, keep_all=FALSE){
+bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE){
 
   dagitty <- bn2dagitty(bn_df)
 
@@ -38,10 +38,11 @@ bn_simulate <- function(bn_df, data=NULL, pop_size, keep_all=FALSE){
 
 
   # simulate complete dataset (with a patient ID variable in the initiated dataset)
-  if (is.null(data))
+  if (is.null(known_df)) {
     tbl0 <- tibble::tibble(ptid = seq_len(pop_size))
-  else
-    tbl0 <- data
+  } else {
+    tbl0 <- known_df
+  }
 
 
   bn_ordered_unknown <- bn_ordered %>% dplyr::filter(!known)
@@ -69,7 +70,7 @@ bn_simulate <- function(bn_df, data=NULL, pop_size, keep_all=FALSE){
   needs <- stats::setNames(bn_ordered_unknown$needs, bn_ordered_unknown$variable)
 
   tblsim_missing2 <- purrr::pmap_df(
-    lst(variable = tblsim_missing1[bn_ordered_unknown$variable], needs, simdat=list(tblsim_missing1)),
+    tibble::lst(variable = tblsim_missing1[bn_ordered_unknown$variable], needs, simdat=list(tblsim_missing1)),
     function(variable, needs, simdat){
       NA_type_ <- NA
       mode(NA_type_) <- typeof(variable)
@@ -97,7 +98,7 @@ bn_simulate <- function(bn_df, data=NULL, pop_size, keep_all=FALSE){
   tblsim <- dplyr::bind_cols(tbl0, tblsim_missing2)
 
   # choose which variables to return
-  returnvars <- bn_df1 %>% dplyr::filter(keep | keep_all) %>% purrr::pluck("variable")
+  returnvars <- bn_df1 %>% dplyr::filter(keep | keep_all, known==FALSE) %>% purrr::pluck("variable")
 
   tblsim %>% dplyr::select(names(tbl0), tidyselect::all_of(returnvars))
 }

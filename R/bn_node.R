@@ -16,7 +16,6 @@ bn_node <- function(
   variable_formula,
   missing_rate=~0,
   keep=TRUE,
-  #known=FALSE,
   needs=character()
 ){
 
@@ -28,7 +27,6 @@ bn_node <- function(
     variable_formula = variable_formula,
     missing_rate = missing_rate,
     keep = keep,
-    #known = known,
     needs = c(character(), needs)
   )
 
