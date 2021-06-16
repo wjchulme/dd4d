@@ -1,11 +1,11 @@
 #
-#' Random categorical or factor variables
+#' Random categorical variables
 #'
 #' @param n number of samples
 #' @param levels vector of categories to sample from
 #' @param p vector of probabilities
 #'
-#' @return a `character` or `factor` vector
+#' @return a `character` vector
 #' @export
 #'
 #' @examples
@@ -14,9 +14,3 @@ rcat <- function(n, levels, p){
   sample(x=levels, size=n, replace=TRUE, prob=p)
 }
 
-#' @rdname rcat
-rfactor <- function(n, levels, p){
-  x <- sample(x=levels, size=n, replace=TRUE, prob=p)
-
-  factor(x = x, levels = levels)
-}
