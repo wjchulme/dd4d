@@ -4,7 +4,7 @@
 \alias{bn_simulate}
 \title{Simulate data from bn_df object}
 \usage{
-bn_simulate(bn_df, known_df = NULL, pop_size, keep_all = FALSE)
+bn_simulate(bn_df, known_df = NULL, pop_size, keep_all = FALSE, .id = NULL)
 }
 \arguments{
 \item{bn_df}{initialised bn_df object, with simulation instructions. Created with \code{bn_create}}
@@ -14,6 +14,8 @@ bn_simulate(bn_df, known_df = NULL, pop_size, keep_all = FALSE)
 \item{pop_size}{integer. The size of the dataset to be created.}
 
 \item{keep_all}{logical. Keep all simulated variables or only keep those specified by \code{keep}}
+
+\item{.id}{character. Name of id column placed at the start of the dataset. If NULL (default) then no id column is created.}
 }
 \value{
 tbl

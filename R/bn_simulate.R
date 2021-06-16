@@ -5,12 +5,15 @@
 #' @param known_df data.frame. Optional data.frame containing upstream variables used for simulation.
 #' @param pop_size integer. The size of the dataset to be created.
 #' @param keep_all logical. Keep all simulated variables or only keep those specified by `keep`
+#' @param .id character. Name of id column placed at the start of the dataset. If NULL (default) then no id column is created.
 #'
 #' @return tbl
 #' @export
 #'
 #' @examples
-bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE){
+bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE,.id=NULL){
+
+  stopifnot(".id must be NULL or a length 1 character" = ( length(.id)==1 & is.character(.id) | is.null(.id)))
 
   dagitty <- bn2dagitty(bn_df)
 
@@ -39,7 +42,7 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE){
 
   # simulate complete dataset (with a patient ID variable in the initiated dataset)
   if (is.null(known_df)) {
-    tbl0 <- tibble::tibble(ptid = seq_len(pop_size))
+    tbl0 <- tibble::tibble(.id = seq_len(pop_size))
   } else {
     tbl0 <- known_df
   }
@@ -109,6 +112,13 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE){
   # choose which variables to return
   returnvars <- bn_df1 %>% dplyr::filter(keep | keep_all, known==FALSE) %>% purrr::pluck("variable")
 
-  tblsim %>% dplyr::select(names(tbl0), tidyselect::all_of(returnvars))
+  tblout <- tblsim %>% dplyr::select(names(tbl0), tidyselect::all_of(returnvars))
+  if(is.null(.id)){
+    tblout$.id <- NULL
+  } else {
+    names(tblout)[names(tblout) == '.id'] <- .id
+  }
+
+  tblout
 }
 
