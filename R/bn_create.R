@@ -63,7 +63,7 @@ bn_create <- function(list, known_variables=NULL){
     df <- dplyr::bind_rows(df_available, df)
   }
 
-  df <- df$in_order = seq_len(nrow(df))
+  df$in_order <- seq_len(nrow(df))
 
   dagitty <- bn2dagitty(df)
 
