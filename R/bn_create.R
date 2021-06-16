@@ -25,7 +25,7 @@ bn_create <- function(list, known_variables=NULL){
   stopifnot("'list' must be a list where each element is an object of class 'node'" = all(sapply(list, function(x){"node" %in% class(x)})))
 
   df <- tibble::enframe(list, name="variable", value="list")
-  df <- purrr::unnest_wider(df, "list")
+  df <- tidyr::unnest_wider(df, "list")
 
   # this bit is needed because if there are no nodes with "needs" specified, this variable does not
   # get unnested, so needs to be created explicitly
@@ -41,7 +41,7 @@ bn_create <- function(list, known_variables=NULL){
                dependencies = purrr::map(variable_formula, ~all.vars(.)),
                missing_formula = purrr::map(missing_rate, ~{
                  rhs <- deparse1(rlang::f_rhs(.))
-                 fun <- as.formula(paste0("~rbernoulli(n=1, p=", rhs, ")"))
+                 fun <- stats::as.formula(paste0("~rbernoulli(n=1, p=", rhs, ")"))
                  fun
                }),
   )
@@ -51,11 +51,11 @@ bn_create <- function(list, known_variables=NULL){
     df_available <-
       tibble::tibble(
         variable = known_variables,
-        variable_formula = list(~as.formula(paste0("~", variable))),
+        variable_formula = list(~stats::as.formula(paste0("~", variable))),
         missing_rate = list(~0),
         keep = TRUE,
         dependencies = list(character()),
-        missing_formula = list(as.formula("~rbernoulli(n=1, p=0)")),
+        missing_formula = list(stats::as.formula("~rbernoulli(n=1, p=0)")),
         known = TRUE,
         needs = list(character())
       )

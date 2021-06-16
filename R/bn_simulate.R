@@ -1,12 +1,12 @@
 
 #' Simulate data from bn_df object
 #'
-#' @param bn_df
-#' @param data
-#' @param pop_size
-#' @param keep_all
+#' @param bn_df initialised bn_df object, with simulation instructions. Created with `bn_create`
+#' @param data data.frame. Optional data.frame containing upstream variables used for simulation.
+#' @param pop_size integer. The size of the dataset to be created.
+#' @param keep_all logical. Keep all simulated variables or only keep those specified by `keep`
 #'
-#' @return
+#' @return tbl
 #' @export
 #'
 #' @examples
@@ -14,12 +14,12 @@ bn_simulate <- function(bn_df, data=NULL, pop_size, keep_all=FALSE){
 
   dagitty <- bn2dagitty(bn_df)
 
-  bn_df1 <- bn_df %>% mutate(
-    bn_fun = pmap(lst(variable, variable_formula), function(variable, variable_formula){
+  bn_df1 <- bn_df %>% dplyr::mutate(
+    bn_fun = purrr::pmap(tibble::lst(variable, variable_formula), function(variable, variable_formula){
 
       function(tib){
         row_num <- seq_len(nrow(tib))
-        x <- simplify(map(row_num,  ~eval(rlang::f_rhs(variable_formula), tib[.,])))
+        x <- purrr::simplify(purrr::map(row_num,  ~eval(rlang::f_rhs(variable_formula), tib[.,])))
         tib1 <- tib
         tib1[variable] <- x
         tib1
@@ -30,45 +30,45 @@ bn_simulate <- function(bn_df, data=NULL, pop_size, keep_all=FALSE){
 
   #reorder based on dependencies so that simulation will create variables in the right order
   bn_ordered <- dagitty %>%
-    topologicalOrdering() %>%
-    enframe(name="variable", value='topological_order') %>%
-    unnest(topological_order) %>%
-    left_join(bn_df1, ., by='variable') %>%
-    arrange(topological_order)
+    dagitty::topologicalOrdering() %>%
+    tibble::enframe(name="variable", value='topological_order') %>%
+    purrr::unnest(topological_order) %>%
+    dplyr::left_join(bn_df1, ., by='variable') %>%
+    dplyr::arrange(topological_order)
 
 
   # simulate complete dataset (with a patient ID variable in the initiated dataset)
   if (is.null(data))
-    tbl0 <- tibble(ptid = seq_len(pop_size))
+    tbl0 <- tibble::tibble(ptid = seq_len(pop_size))
   else
     tbl0 <- data
 
 
-  bn_ordered_unknown <- bn_ordered %>% filter(!known)
+  bn_ordered_unknown <- bn_ordered %>% dplyr::filter(!known)
 
-  tblsim_complete <- compose(!!!bn_ordered_unknown$bn_fun, .dir='forward')(tbl0)
+  tblsim_complete <- purrr::compose(!!!bn_ordered_unknown$bn_fun, .dir='forward')(tbl0)
 
   # make some values missing, according to missing
 
-  missing_formula <- setNames(bn_ordered_unknown$missing_formula, bn_ordered_unknown$variable)
+  missing_formula <- stats::setNames(bn_ordered_unknown$missing_formula, bn_ordered_unknown$variable)
 
-  tblsim_missing1 <- pmap_df(
-    lst(variable = tblsim_complete[bn_ordered_unknown$variable], missing_formula, simdat=list(tblsim_complete)),
+  tblsim_missing1 <- purrr::pmap_df(
+    tibble::lst(variable = tblsim_complete[bn_ordered_unknown$variable], missing_formula, simdat=list(tblsim_complete)),
     function(variable, missing_formula, simdat){
       NA_type_ <- NA
       mode(NA_type_) <- typeof(variable)
       row_num <- seq_len(nrow(simdat))
-      mask <- map_lgl(row_num, ~eval(rlang::f_rhs(missing_formula), simdat[.,]))
+      mask <- purrr::map_lgl(row_num, ~eval(rlang::f_rhs(missing_formula), simdat[.,]))
 
-      if_else(mask, NA_type_, variable)
+      dplyr::if_else(mask, NA_type_, variable)
     }
   )
 
   # make values missing according to `needs`
 
-  needs <- setNames(bn_ordered_unknown$needs, bn_ordered_unknown$variable)
+  needs <- stats::setNames(bn_ordered_unknown$needs, bn_ordered_unknown$variable)
 
-  tblsim_missing2 <- pmap_df(
+  tblsim_missing2 <- purrr::pmap_df(
     lst(variable = tblsim_missing1[bn_ordered_unknown$variable], needs, simdat=list(tblsim_missing1)),
     function(variable, needs, simdat){
       NA_type_ <- NA
@@ -76,12 +76,12 @@ bn_simulate <- function(bn_df, data=NULL, pop_size, keep_all=FALSE){
 
       if(length(needs)!=0){
         mask <- simdat %>%
-          select(all_of(needs)) %>%
-          mutate(across(all_of(needs), ~!is.na(.))) %>%
-          rowwise() %>%
-          mutate(
-            need_satisfied=!all(c_across(all_of(needs)))
-          ) %>% pluck("need_satisfied")
+          dplyr::select(tidyselect::all_of(needs)) %>%
+          dplyr::mutate(dplyr::across(tidyselect::all_of(needs), ~!is.na(.))) %>%
+          dplyr::rowwise() %>%
+          dplyr::mutate(
+            need_satisfied=!all(dplyr::c_across(tidyselect::all_of(needs)))
+          ) %>% purrr::pluck("need_satisfied")
 
 
       }
@@ -89,16 +89,16 @@ bn_simulate <- function(bn_df, data=NULL, pop_size, keep_all=FALSE){
         mask <- rep(FALSE, nrow(simdat))
       }
 
-      if_else(mask, NA_type_, variable)
+      dplyr::if_else(mask, NA_type_, variable)
     }
   )
 
 
-  tblsim <- bind_cols(tbl0, tblsim_missing2)
+  tblsim <- dplyr::bind_cols(tbl0, tblsim_missing2)
 
   # choose which variables to return
-  returnvars <- bn_df1 %>% filter(keep | keep_all) %>% pluck("variable")
+  returnvars <- bn_df1 %>% dplyr::filter(keep | keep_all) %>% purrr::pluck("variable")
 
-  tblsim %>% select(names(tbl0), all_of(returnvars))
+  tblsim %>% dplyr::select(names(tbl0), tidyselect::all_of(returnvars))
 }
 

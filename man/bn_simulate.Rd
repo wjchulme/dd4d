@@ -7,10 +7,16 @@
 bn_simulate(bn_df, data = NULL, pop_size, keep_all = FALSE)
 }
 \arguments{
-\item{keep_all}{}
+\item{bn_df}{initialised bn_df object, with simulation instructions. Created with \code{bn_create}}
+
+\item{data}{data.frame. Optional data.frame containing upstream variables used for simulation.}
+
+\item{pop_size}{integer. The size of the dataset to be created.}
+
+\item{keep_all}{logical. Keep all simulated variables or only keep those specified by \code{keep}}
 }
 \value{
-
+tbl
 }
 \description{
 Simulate data from bn_df object
