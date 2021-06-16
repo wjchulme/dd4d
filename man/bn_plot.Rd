@@ -10,7 +10,7 @@ bn_plot(bn_df)
 \item{bn_df}{initialised bn_df object, with simulation instructions. Created with \code{bn_create}}
 }
 \value{
-
+plot
 }
 \description{
 Plot bn_df object
