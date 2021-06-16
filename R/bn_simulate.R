@@ -62,9 +62,9 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE){
       if(class(variable)!="factor"){
         NA_type_ <- NA
         mode(NA_type_) <- typeof(variable)
-        dplyr::if_else(mask, NA_type_, variable)
+        dplyr::if_else(!mask, variable, NA_type_)
       } else {
-        if_else(mask, factor(NA, levels(variable)), variable)
+        if_else(!mask, variable, factor(NA))
       }
     }
   )
@@ -76,8 +76,7 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE){
   tblsim_missing2 <- purrr::pmap_df(
     tibble::lst(variable = tblsim_missing1[bn_ordered_unknown$variable], needs, simdat=list(tblsim_missing1)),
     function(variable, needs, simdat){
-      NA_type_ <- NA
-      mode(NA_type_) <- typeof(variable)
+
 
       if(length(needs)!=0){
         mask <- simdat %>%
@@ -94,7 +93,13 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE){
         mask <- rep(FALSE, nrow(simdat))
       }
 
-      dplyr::if_else(mask, NA_type_, variable)
+      if(class(variable)!="factor"){
+        NA_type_ <- NA
+        mode(NA_type_) <- typeof(variable)
+        dplyr::if_else(!mask, variable, NA_type_)
+      } else {
+        if_else(!mask, variable, factor(NA))
+      }
     }
   )
 
