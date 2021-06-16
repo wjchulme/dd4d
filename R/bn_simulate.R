@@ -56,12 +56,16 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE){
   tblsim_missing1 <- purrr::pmap_df(
     tibble::lst(variable = tblsim_complete[bn_ordered_unknown$variable], missing_formula, simdat=list(tblsim_complete)),
     function(variable, missing_formula, simdat){
-      NA_type_ <- NA
-      mode(NA_type_) <- typeof(variable)
+
       row_num <- seq_len(nrow(simdat))
       mask <- purrr::map_lgl(row_num, ~eval(rlang::f_rhs(missing_formula), simdat[.,]))
-
-      dplyr::if_else(mask, NA_type_, variable)
+      if(class(variable)!="factor"){
+        NA_type_ <- NA
+        mode(NA_type_) <- typeof(variable)
+        dplyr::if_else(mask, NA_type_, variable)
+      } else {
+        if_else(mask, factor(NA, levels(variable)), variable)
+      }
     }
   )
 
