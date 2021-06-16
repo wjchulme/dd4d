@@ -30,11 +30,19 @@ bn_create <- function(list, known_variables=NULL){
   # this bit is needed because if there are no nodes with "needs" specified, this variable does not
   # get unnested, so needs to be created explicitly
   # otherwise if at least one "need" is specified, then for all nodes without needs, `need` is converted from
-  # character() to NA, so need to undo.
+  # character() to NULL, so need to undo.
   if(!("needs" %in% names(df))){
     df$needs = list(character())
   } else{
-    df$needs = purrr::map(df$needs, ~{if(is.na(.)) character() else . })
+    df$needs = purrr::map(df$needs, ~{
+      if(is.null(.)){
+        character()
+      } else
+      if(is.na(.)){
+        character()
+      } else
+        .
+      })
   }
 
   df <- dplyr::mutate(df,
