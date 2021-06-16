@@ -4,12 +4,12 @@
 \alias{bn_simulate}
 \title{Simulate data from bn_df object}
 \usage{
-bn_simulate(bn_df, data = NULL, pop_size, keep_all = FALSE)
+bn_simulate(bn_df, known_df = NULL, pop_size, keep_all = FALSE)
 }
 \arguments{
 \item{bn_df}{initialised bn_df object, with simulation instructions. Created with \code{bn_create}}
 
-\item{data}{data.frame. Optional data.frame containing upstream variables used for simulation.}
+\item{known_df}{data.frame. Optional data.frame containing upstream variables used for simulation.}
 
 \item{pop_size}{integer. The size of the dataset to be created.}
 
