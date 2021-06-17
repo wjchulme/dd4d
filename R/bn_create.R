@@ -46,7 +46,7 @@ bn_create <- function(list, known_variables=NULL){
   }
 
   df <- dplyr::mutate(df,
-    dependencies = purrr::map(variable_formula, ~all.vars(.)),
+    parents = purrr::map(variable_formula, ~all.vars(.)),
     missing_formula = purrr::map(missing_rate, ~{
       rhs <- deparse1(rlang::f_rhs(.))
       fun <- stats::as.formula(paste0("~rbernoulli(n=1, p=", rhs, ")"))
@@ -63,7 +63,7 @@ bn_create <- function(list, known_variables=NULL){
         variable_formula = list(~stats::as.formula(paste0("~", variable))),
         missing_rate = list(~0),
         keep = TRUE,
-        dependencies = list(character()),
+        parents = list(character()),
         missing_formula = list(stats::as.formula("~rbernoulli(n=1, p=0)")),
         known = TRUE,
         needs = list(character())
@@ -76,8 +76,14 @@ bn_create <- function(list, known_variables=NULL){
 
   dagitty <- bn2dagitty(df)
 
+
+  parents_check <- map(df$variable, ~ dagitty::parents(dagitty, .)) # should be same as 'parents' above
+  stopifnot("mismatch between dependencies and parents" = all(map2_lgl(df$parents, parents_check, ~all(.x %in% .y) & all(.x %in% .y))))
+
+  df$children <- map(df$variable, ~ dagitty::children(dagitty, .))
+
   stopifnot("graph is not acyclic" = dagitty::isAcyclic(dagitty))
-  stopifnot("not all dependencies are defined" = all(purrr::simplify(unique(rlang::flatten(df$dependencies))) %in% df$variable))
+  stopifnot("not all dependencies are defined" = all(purrr::simplify(unique(rlang::flatten(df$parents))) %in% df$variable))
   stopifnot("variable names are not unique" = length(df$variable) == length(unique(df$variable)))
 
   df
