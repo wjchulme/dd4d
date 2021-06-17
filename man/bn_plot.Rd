@@ -4,10 +4,12 @@
 \alias{bn_plot}
 \title{Plot bn_df object}
 \usage{
-bn_plot(bn_df)
+bn_plot(bn_df, connected_only = FALSE)
 }
 \arguments{
 \item{bn_df}{initialised bn_df object, with simulation instructions. Created with \code{bn_create}}
+
+\item{connected_only}{logical. Only plot nodes that are connected to other nodes}
 }
 \value{
 plot
