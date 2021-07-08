@@ -83,12 +83,14 @@ bn_create <- function(list, known_variables=NULL){
   df$children <- map(df$variable, ~ dagitty::children(dagitty, .))
 
   stopifnot("graph is not acyclic" = dagitty::isAcyclic(dagitty))
+
   if(!all(purrr::simplify(unique(rlang::flatten(df$parents))) %in% df$variable)){
     print(
       purrr::simplify(unique(rlang::flatten(df$parents)))[!(purrr::simplify(unique(rlang::flatten(df$parents))) %in% df$variable)]
     )
     stop("not all dependencies are defined")
   }
+
   stopifnot("variable names are not unique" = length(df$variable) == length(unique(df$variable)))
 
   df

@@ -52,7 +52,7 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE,.id=NULL)
 
   tblsim_complete <- purrr::compose(!!!bn_ordered_unknown$bn_fun, .dir='forward')(tbl0)
 
-  # make some values missing, according to missing
+  # make some values missing, according to `missing`
 
   missing_formula <- stats::setNames(bn_ordered_unknown$missing_formula, bn_ordered_unknown$variable)
 
@@ -89,8 +89,6 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE,.id=NULL)
           dplyr::mutate(
             need_satisfied=!all(dplyr::c_across(tidyselect::all_of(needs)))
           ) %>% purrr::pluck("need_satisfied")
-
-
       }
       else{
         mask <- rep(FALSE, nrow(simdat))
