@@ -7,7 +7,7 @@
 bn_create(list, known_variables = NULL)
 }
 \arguments{
-\item{list}{of node objects, created by \code{node}.}
+\item{list}{of node objects, created by \code{bn_node}.}
 
 \item{known_variables}{character vector of variables that will be provided by an external dataset}
 }
@@ -16,8 +16,8 @@ data.frame
 }
 \description{
 Converts list to data frame which is a bit easier to work with, and embellishes with some useful columns.
-The function performs a few checks on the the list, for instance to make sure the p-DAG is indeed acyclic
-and that variables using in the expressions are defined elsewhere.
+The function performs a few checks on the list, for instance to make sure the graph is acyclic
+and that variables used in the expressions are defined elsewhere or already known.
 The known_variables argument is for passing a character vector of variables names
 for variables that are already defined externally in a
 given dataset, which can be passed to bn_simulate

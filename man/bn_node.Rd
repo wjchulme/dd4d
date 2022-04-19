@@ -7,14 +7,14 @@
 bn_node(variable_formula, missing_rate = ~0, keep = TRUE, needs = character())
 }
 \arguments{
-\item{variable_formula}{formula.}
+\item{variable_formula}{A RHS-only formula specified how to simulate that variable. Use \code{..n} for the number of observations, which is later replaced by \code{pop_size} in the \code{bn_simulate} function.}
 
-\item{missing_rate}{formula. This specifies how missing values should be distributed.
+\item{missing_rate}{A RHS-only formula. This specifies how missing values should be distributed.
 Can use a simple proportion such as \code{~0.5} or missingness can depend on other values for example using \code{~plogis(-2 + age*0.05)}, which says missingness increases with age.}
 
-\item{keep}{logical. should this variable be kept in the final simulated output?}
+\item{keep}{logical. Should this variable be kept in the final simulated output or not}
 
-\item{needs}{character vector of variables. If any variables given in \code{needs} are missing, then this variable is missing too.}
+\item{needs}{A character vector of variables. If any variables given in \code{needs} are missing / \code{NA}, then this variable is missing too.}
 }
 \value{
 Object of class \code{node} and \code{list}.
@@ -23,5 +23,5 @@ Object of class \code{node} and \code{list}.
 Specify a variable node in the network
 }
 \examples{
-bn_node(variable_formula = ~floor(rnorm(n=1, mean=60, sd=15)))
+bn_node(variable_formula = ~floor(rnorm(n=..n, mean=60, sd=15)))
 }

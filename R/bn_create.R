@@ -1,8 +1,8 @@
 #' Creates a bayesian network object from a list of nodes
 #'
 #' Converts list to data frame which is a bit easier to work with, and embellishes with some useful columns.
-#' The function performs a few checks on the the list, for instance to make sure the p-DAG is indeed acyclic
-#' and that variables using in the expressions are defined elsewhere.
+#' The function performs a few checks on the list, for instance to make sure the graph is acyclic
+#' and that variables used in the expressions are defined elsewhere or already known.
 
 #' The known_variables argument is for passing a character vector of variables names
 #' for variables that are already defined externally in a
@@ -12,7 +12,7 @@
 #' it doesn't actually lead to self-dependence (eg var depends on var)
 
 #'
-#' @param list of node objects, created by `node`.
+#' @param list of node objects, created by `bn_node`.
 #' @param known_variables character vector of variables that will be provided by an external dataset
 #'
 #' @return data.frame
@@ -46,12 +46,13 @@ bn_create <- function(list, known_variables=NULL){
   }
 
   df <- dplyr::mutate(df,
-    parents = purrr::map(variable_formula, ~all.vars(.)),
+    parents = purrr::map(variable_formula, function(x) {parents <- all.vars(x); parents[parents!="..n"] }),
     missing_formula = purrr::map(missing_rate, ~{
       rhs <- deparse1(rlang::f_rhs(.))
-      fun <- stats::as.formula(paste0("~rbernoulli(n=1, p=", rhs, ")"))
+      fun <- stats::as.formula(paste0("~rbernoulli(n=..n, p=", rhs, ")"))
       fun
     }),
+    missing_parents = purrr::map(missing_formula, function(x) {parents <- all.vars(x); parents[parents!="..n"] }),
     known=FALSE
   )
 
@@ -64,7 +65,8 @@ bn_create <- function(list, known_variables=NULL){
         missing_rate = list(~0),
         keep = TRUE,
         parents = list(character()),
-        missing_formula = list(stats::as.formula("~rbernoulli(n=1, p=0)")),
+        missing_formula = list(stats::as.formula("~rbernoulli(n=..n, p=0)")),
+        missing_parents = list(character()),
         known = TRUE,
         needs = list(character())
       )
@@ -77,10 +79,10 @@ bn_create <- function(list, known_variables=NULL){
   dagitty <- bn2dagitty(df)
 
 
-  parents_check <- map(df$variable, ~ dagitty::parents(dagitty, .)) # should be same as 'parents' above
-  stopifnot("mismatch between dependencies and parents" = all(map2_lgl(df$parents, parents_check, ~all(.x %in% .y) & all(.x %in% .y))))
+  parents_check <- purrr::map(df$variable, ~ dagitty::parents(dagitty, .)) # should be same as 'parents' above
+  stopifnot("mismatch between dependencies and parents" = all(purrr::map2_lgl(df$parents, parents_check, ~all(.x %in% .y) & all(.x %in% .y))))
 
-  df$children <- map(df$variable, ~ dagitty::children(dagitty, .))
+  df$children <- purrr::map(df$variable, ~ dagitty::children(dagitty, .))
 
   stopifnot("graph is not acyclic" = dagitty::isAcyclic(dagitty))
 

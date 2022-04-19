@@ -11,28 +11,38 @@
 #' @export
 #'
 #' @examples
-bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE,.id=NULL){
+bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE, .id=NULL){
 
-  stopifnot(".id must be NULL or a length 1 character" = ( length(.id)==1 & is.character(.id) | is.null(.id)))
+  if (is.null(known_df)) {
+    ..n <- pop_size
+  } else {
+    ..n <- nrow(known_df)
+  }
+
+  stopifnot(".id must be NULL or a length 1 character giving the name of the ID variable" = ( length(.id)==1 & is.character(.id) | is.null(.id)))
 
   dagitty <- bn2dagitty(bn_df)
+  rbernoulli <- purrr::rbernoulli
 
-  bn_df1 <- bn_df %>% dplyr::mutate(
-    bn_fun = purrr::pmap(tibble::lst(variable, variable_formula), function(variable, variable_formula){
-
-      function(tib){
-        row_num <- seq_len(nrow(tib))
-        x <- purrr::simplify(purrr::map(row_num,  ~eval(rlang::f_rhs(variable_formula), tib[.,])))
-        tib1 <- tib
-        tib1[variable] <- x
-        tib1
-      }
-    }),
-
-  )
+  # creates the simulation function for each variable
+  bn_df1 <-
+    bn_df %>%
+    dplyr::mutate(
+      variable_expr = purrr::map(variable_formula, ~rlang::quo_squash(rlang::f_rhs(.))),
+      # bn_fun = purrr::pmap(tibble::lst(variable, variable_formula), function(variable, variable_formula){
+      #   function(tib){
+      #     row_num <- seq_len(nrow(tib))
+      #     x <- purrr::simplify(purrr::map(row_num,  ~eval(rlang::f_rhs(variable_formula), tib[.,])))
+      #     tib1 <- tib
+      #     tib1[variable] <- x
+      #     tib1
+      #   }
+      # }),
+    )
 
   #reorder based on dependencies so that simulation will create variables in the right order
-  bn_ordered <- dagitty %>%
+  bn_ordered <-
+    dagitty %>%
     dagitty::topologicalOrdering() %>%
     tibble::enframe(name="variable", value='topological_order') %>%
     tidyr::unnest(topological_order) %>%
@@ -47,35 +57,42 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE,.id=NULL)
     tbl0 <- known_df
   }
 
-
+  # variables to simulate
   bn_ordered_unknown <- bn_ordered %>% dplyr::filter(!known)
 
-  tblsim_complete <- purrr::compose(!!!bn_ordered_unknown$bn_fun, .dir='forward')(tbl0)
+  named_expr <- rlang::set_names(bn_ordered_unknown$variable_expr, bn_ordered_unknown$variable)
 
-  # make some values missing, according to `missing`
+  # simulate variables
+  tblsim_complete <-
+    tbl0 %>%
+    dplyr::mutate(
+      !!!named_expr
+    )
 
-  missing_formula <- stats::setNames(bn_ordered_unknown$missing_formula, bn_ordered_unknown$variable)
+  # create list of formulae that determining missingness
+  missing_formula <- rlang::set_names(bn_ordered_unknown$missing_formula, bn_ordered_unknown$variable)
 
+  # introduce NAs according to formulae in `missing_formula`
   tblsim_missing1 <- purrr::pmap_df(
     tibble::lst(variable = tblsim_complete[bn_ordered_unknown$variable], missing_formula, simdat=list(tblsim_complete)),
     function(variable, missing_formula, simdat){
 
-      row_num <- seq_len(nrow(simdat))
-      mask <- purrr::map_lgl(row_num, ~eval(rlang::f_rhs(missing_formula), simdat[.,]))
+      mask <- eval(rlang::f_rhs(missing_formula), simdat)
       if(class(variable)!="factor"){
         NA_type_ <- NA
         mode(NA_type_) <- typeof(variable)
         dplyr::if_else(!mask, variable, NA_type_)
       } else {
-        if_else(!mask, variable, factor(NA))
+        dplyr::if_else(!mask, variable, factor(NA))
       }
     }
   )
 
-  # make values missing according to `needs`
 
-  needs <- stats::setNames(bn_ordered_unknown$needs, bn_ordered_unknown$variable)
+  # create list of formulae that determining missingness
+  needs <- rlang::set_names(bn_ordered_unknown$needs, bn_ordered_unknown$variable)
 
+  # introduce NAs according to formulae in `missing_formula`
   tblsim_missing2 <- purrr::pmap_df(
     tibble::lst(variable = tblsim_missing1[bn_ordered_unknown$variable], needs, simdat=list(tblsim_missing1)),
     function(variable, needs, simdat){
@@ -99,18 +116,27 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE,.id=NULL)
         mode(NA_type_) <- typeof(variable)
         dplyr::if_else(!mask, variable, NA_type_)
       } else {
-        if_else(!mask, variable, factor(NA))
+        dplyr::if_else(!mask, variable, factor(NA))
       }
     }
   )
 
-
+  # combine known and simulated variables
   tblsim <- dplyr::bind_cols(tbl0, tblsim_missing2)
 
   # choose which variables to return
-  returnvars <- bn_df1 %>% dplyr::filter(keep | keep_all, known==FALSE) %>% purrr::pluck("variable")
+  returnvars <-
+    bn_df1 %>%
+    dplyr::filter(keep | keep_all, known==FALSE) %>%
+    purrr::pluck("variable")
+  tblout <-
+    tblsim %>%
+    dplyr::select(
+      names(tbl0),
+      tidyselect::all_of(returnvars)
+    )
 
-  tblout <- tblsim %>% dplyr::select(names(tbl0), tidyselect::all_of(returnvars))
+  # rename id variable
   if(is.null(.id)){
     tblout$.id <- NULL
   } else {

@@ -11,7 +11,7 @@
 bn_plot <- function(bn_df, connected_only = FALSE){
 
   if(connected_only){
-    dagitty <- bn2dagitty(bn_df[!(map_lgl(bn_df$parents, ~length(.)==0) & map_lgl(bn_df$children, ~length(.)==0)), ])
+    dagitty <- bn2dagitty(bn_df[!(purrr::map_lgl(bn_df$parents, ~length(.)==0) & purrr::map_lgl(bn_df$children, ~length(.)==0)), ])
   } else{
     dagitty <- bn2dagitty(bn_df)
   }
