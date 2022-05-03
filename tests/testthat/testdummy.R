@@ -45,7 +45,7 @@ dummydata <-bn_simulate(bn, known_df = testdata, keep_all = TRUE, .id="patient_i
 
 sim_list = list(
   x1 = bn_node(~rcat(n=..n, c("a","b","c"), c(0.5,0.4,0.1))),
-  x2 = bn_node(~as.integer(runif(n=..n, , 120))),
+  x2 = bn_node(~as.integer(runif(n=..n, 0, 120))),
   x3 = bn_node(
     ~as.integer(runif(n=..n, (x1=="b")*10, 10 + (x1=="b")*10)),
     missing_rate = ~0.3
