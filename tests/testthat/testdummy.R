@@ -27,7 +27,7 @@ sim_list = list(
   x4 = bn_node(
     ~as.integer(runif(n=..n, d, d+120)),
     missing_rate = ~ (1-(x1=="a")*(1-0.1)),
-    #needs = "a"
+    #needs = c("a")
   )
 )
 

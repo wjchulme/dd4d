@@ -25,7 +25,8 @@ bn_create <- function(list, known_variables=NULL){
   stopifnot("'list' must be a list where each element is an object of class 'node'" = all(sapply(list, function(x){"node" %in% class(x)})))
 
   df <- tibble::enframe(list, name="variable", value="list")
-  df <- tidyr::unnest_wider(df, "list")
+  # df <- tidyr::unnest_wider(df, "list") # this no longer works after update to tidyr, even with ptype specification, so use tidyr::hoist instead
+  df <- tidyr::hoist(df, .col="list", variable_formula=1, missing_rate=2, keep=3, needs=4)
 
   # this bit is needed because if there are no nodes with "needs" specified, this variable does not
   # get unnested, so needs to be created explicitly
