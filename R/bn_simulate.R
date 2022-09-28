@@ -91,6 +91,15 @@ bn_simulate <- function(bn_df, known_df=NULL, pop_size, keep_all=FALSE, .id=NULL
 
   # create list of formulae that determining missingness
   needs <- rlang::set_names(bn_ordered_unknown$needs, bn_ordered_unknown$variable)
+  # add all upstream needs
+  for (i in seq_along(needs)) {
+    if (length(needs[[i]]) > 0) {
+      for(j in seq_along(needs[[i]])) {
+        needs[[i]] <- c(needs[[needs[[i]][j]]], needs[[i]])
+      }
+      needs[[i]] <- unique(needs[[i]])
+    }
+  }
 
   # introduce NAs according to formulae in `missing_formula`
   tblsim_missing2 <- purrr::pmap_df(
