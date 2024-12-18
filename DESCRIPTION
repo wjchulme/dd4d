@@ -10,6 +10,8 @@ Authors@R:
 Description: Allows you to specify and sample from a Bayesian Network 
   (a.k.a. a parametric Directed Acyclic Graph, or pDAG). 
 License: MIT + file LICENSE
+URL: https://github.com/wjchulme/dd4d,
+    https://opensafely-core.r-universe.dev/dd4d
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
